@@ -224,6 +224,7 @@ export default class Runtime {
   private _unmockList: RegExp | undefined;
   private readonly _virtualMocks: Map<string, boolean>;
   private readonly _virtualModuleMocks: Map<string, boolean>;
+  private _moduleResetFunction: (() => void) | undefined;
   private _moduleImplementation?: typeof nativeModule.Module;
   private readonly jestObjectCaches: Map<string, Jest>;
   private jestGlobals?: JestGlobals;
@@ -1440,6 +1441,7 @@ export default class Runtime {
   }
 
   resetAllMocks(): void {
+    this._moduleResetFunction?.();
     this._moduleMocker.resetAllMocks();
   }
 
@@ -1691,6 +1693,8 @@ export default class Runtime {
       this.handleExecutionError(error, module);
     }
 
+    const moduleResetFunction = module.exports?.default?.RESET;
+    this._moduleResetFunction = moduleResetFunction;
     this._isCurrentlyExecutingManualMock = origCurrExecutingManualMock;
     this._currentlyExecutingModulePath = lastExecutingModulePath;
   }
